@@ -1,17 +1,53 @@
+// Package redovalnica ponuja redovalnico za študente.
+//
+// Paket omogoča dodajanje ocen študentom, izpis vseh ocen, izračunavanje
+// končnega uspeha na podlagi ocen in določenih
+// nastavitev.
+//
+//
+// Primer uporabe:
+//
+//    Možna stikala:
+//    StOcen - ki definira najmanjše število ocen potrebnih za pozitivno oceno
+//    MinOcena = najmanjša možna ocena
+//    MaxOcena = največja možna ocena
+//
+//    Ustvari, novega studenta:
+//    s := redovalnica.NoviStudent("Janez", "Novak")
+//    studenti["63230111"] = redovalnica.NoviStudent("Janez", "Novak")
+//
+//    Funkcije:
+//    DodajOceno(studenti, "12345", 8)
+//    DodajOceno(studenti, "12345", 9)
+//    IzpisVsehOcen(studenti)
+//    IzpisiKoncniUspeh(studenti)
+
 package redovalnica
 
 import (
 	"fmt"
 )
 
+// Možnosti za študenta
 type Student struct {
 	ime     string
 	priimek string
 	ocene   []int
 }
 
-var stOcen, MinOcena, MaxOcena int
+// Nastavitve za redovalnico
+var StOcen, MinOcena, MaxOcena int
 
+
+func NoviStudent(ime, priimek string) Student {
+    return Student{
+        ime:     ime,
+        priimek: priimek,
+        ocene:   []int{},
+    }
+}
+
+// DodajOceno doda oceno študentu z dano vpisno številko.
 func DodajOceno(studenti map[string]Student, vpisnaStevilka string, ocena int) {
 	st, obstaja := studenti[vpisnaStevilka]
 	if !obstaja {
@@ -19,8 +55,8 @@ func DodajOceno(studenti map[string]Student, vpisnaStevilka string, ocena int) {
 		return
 	}
 
-	if ocena < 0 || ocena > 10 {
-		fmt.Println("Napaka: ocena mora biti med 0 in 10.")
+	if ocena < MinOcena || ocena > MaxOcena {
+		fmt.Printf("Napaka: ocena mora biti med %d in %d.\n", MinOcena, MaxOcena)
 		return
 	}
 
@@ -28,13 +64,14 @@ func DodajOceno(studenti map[string]Student, vpisnaStevilka string, ocena int) {
 	studenti[vpisnaStevilka] = st
 }
 
+// Povprecje izračuna povprečno oceno študenta z dano vpisno številko.
 func povprecje(studenti map[string]Student, vpisnaStevilka string) float64 {
 	st, obstaja := studenti[vpisnaStevilka]
 	if !obstaja {
 		return -1.0
 	}
 
-	if len(st.ocene) < 6 {
+	if len(st.ocene) < StOcen {
 		return 0
 	}
 
@@ -45,12 +82,15 @@ func povprecje(studenti map[string]Student, vpisnaStevilka string) float64 {
 	return float64(vsota) / float64(len(st.ocene))
 }
 
+// IzpisVsehOcen izpiše vse ocene vseh študentov.
 func IzpisVsehOcen(studenti map[string]Student) {
 	fmt.Println("REDOVALNICA:")
 	for vpisna, st := range studenti {
 		fmt.Printf("%s - %s %s: %v\n", vpisna, st.ime, st.priimek, st.ocene)
 	}
 }
+
+// IzpisiKoncniUspeh izpiše končni uspeh vseh študentov.
 func IzpisiKoncniUspeh(studenti map[string]Student) {
 	for vpisna, student := range studenti {
 		p := povprecje(studenti, vpisna)
